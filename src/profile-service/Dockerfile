@@ -8,6 +8,6 @@ RUN npm install -g npm@latest
 
 RUN yarn install
 
-EXPOSE 3000
+EXPOSE 3002
 
 CMD ["yarn", "run", "start:dev"]

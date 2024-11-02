@@ -37,7 +37,7 @@ services:
     container_name: profile
     build: ./src/profile-service
     environment:
-      - PORT=3000
+      - PORT=3002
       - POSTGRES_HOST=profile_db
       - POSTGRES_PORT=5432
       - POSTGRES_USER=postgres
@@ -46,9 +46,8 @@ services:
       - RMQ_URL=amqp://rabbitmq:5672
       - RABBITMQ_PROFILE_QUEUE=profile_queue
       - RABBITMQ_AUTH_QUEUE=auth_queue
-
     ports:
-      - "3000:3000"
+      - "3002:3002"
     depends_on:
       - rabbitmq
       - postgres_profile
@@ -60,7 +59,7 @@ services:
     container_name: auth
     build: ./src/auth-service
     environment:
-      - PORT=4000
+      - PORT=3001
       - POSTGRES_HOST=auth_db
       - POSTGRES_PORT=5432
       - POSTGRES_USER=postgres
@@ -69,7 +68,7 @@ services:
       - RMQ_URL=amqp://rabbitmq:5672
       - RABBITMQ_AUTH_QUEUE=auth_queue
     ports:
-      - "4000:4000"
+      - "3001:3001"
     depends_on:
       - rabbitmq
       - postgres_auth
@@ -80,9 +79,9 @@ services:
     container_name: api
     build: ./src/api-gateway
     ports:
-      - '5000:5000'
+      - '3000:3000'
     environment:
-      - PORT=5000
+      - PORT=3000
       - RABBITMQ_AUTH_QUEUE=auth_queue
       - RABBITMQ_PROFILE_QUEUE=profiles_queue
     depends_on:
