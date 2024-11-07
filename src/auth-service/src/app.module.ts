@@ -9,7 +9,7 @@ import { AuthEntity } from './auth/entities/auth.entity';
 @Module({
   imports: [
     ConfigModule.forRoot({
-      envFilePath: `./.env`,
+      envFilePath: `.env`,
     }),
     TypeOrmModule.forRoot({
       type: 'postgres',

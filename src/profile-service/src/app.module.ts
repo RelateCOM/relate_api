@@ -8,7 +8,7 @@ import { ProfileEntity } from './profile/entities/profile.entity';
   imports: [
     // Path to .env-file. NB! in package.json add cross-env in scripts start, start:dev.
     ConfigModule.forRoot({
-      envFilePath: `./.env`,
+      envFilePath: `.env`,
     }),
     TypeOrmModule.forRoot({
       type: 'postgres',

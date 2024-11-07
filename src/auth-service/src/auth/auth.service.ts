@@ -15,6 +15,7 @@ import * as bcrypt from 'bcryptjs';
 import { SignInDto } from './dto/sign-in.dto';
 import { RefreshTokenDto } from './dto/refresh-token.dto';
 import { AddRoleAddDto } from './dto/addRole.dto';
+import { Response } from 'express';
 
 @Injectable()
 export class AuthService {
@@ -100,7 +101,7 @@ export class AuthService {
     };
   }
 
-  async signUp(signUpDto: SignUpDto) {
+  async signUp(signUpDto: SignUpDto, response: Response) {
     const { username, email, password } = signUpDto;
     const candidate = await this.getUserByEmail(email);
 
@@ -119,40 +120,63 @@ export class AuthService {
       password: hashedPassword,
     });
 
-    const tokens = this.generateUserTokens(user);
+    const tokens = await this.generateUserTokens(user);
 
-    return {
+    response.cookie('accessToken', `Bearer ${tokens.accessToken}`, {
+      sameSite: 'lax',
+      path: '/',
+      secure: false,
+      httpOnly: true,
+    });
+
+    response.send({
       user,
-      tokens,
-    };
+      token: tokens.refreshToken,
+    });
   }
 
-  async signIn(signInDto: SignInDto) {
+  async signIn(signInDto: SignInDto, response: Response) {
     const user = await this.validateUser(signInDto);
 
-    const tokens = this.generateUserTokens(user);
+    const tokens = await this.generateUserTokens(user);
 
-    return {
+    response.cookie('accessToken', `Bearer ${tokens.accessToken}`, {
+      sameSite: 'lax',
+      path: '/',
+      secure: false,
+      httpOnly: true,
+    });
+
+    response.send({
       user,
-      tokens,
-    };
+      token: tokens.refreshToken,
+    });
   }
 
-  async refresh(refreshToken: RefreshTokenDto) {
+  async refresh(refreshToken: RefreshTokenDto, response: Response) {
     const token = await this.jwtService.verifyAsync(refreshToken.token);
-
     if (!token) throw new UnauthorizedException('Refresh token is invalid');
 
     const user = await this.getUserByEmail(token.email);
-
     if (!user) throw new UnauthorizedException('User not found');
 
-    return this.generateUserTokens(user);
+    const tokens = await this.generateUserTokens(user);
+    response.cookie('accessToken', `Bearer ${tokens.accessToken}`, {
+      sameSite: 'lax',
+      path: '/',
+      secure: false,
+      httpOnly: true,
+    });
+    response.send({
+      token: tokens.refreshToken,
+    });
   }
 
-  async logout(token: string) {
+  async logout(refreshTokenDto: RefreshTokenDto, response: Response) {
+    const { token } = refreshTokenDto;
     try {
       await this.jwtService.verifyAsync(token);
+      response.clearCookie('accessToken');
     } catch (err) {
       console.error('Error logging out user:', err);
       throw new UnauthorizedException('Failed to log out user');

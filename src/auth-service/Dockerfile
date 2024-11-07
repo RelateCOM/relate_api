@@ -1,6 +1,6 @@
 FROM node:21-alpine3.19
 
-WORKDIR /src
+WORKDIR /app
 
 COPY . .
 
@@ -10,4 +10,4 @@ RUN yarn install
 
 EXPOSE 3001
 
-CMD ["yarn", "run", "start:dev"]
+CMD ["yarn", "start:dev"]

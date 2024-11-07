@@ -1,5 +1,5 @@
 all:
-	docker-compose up -d
+	docker compose up --build
 
 clean:
 	docker system prune

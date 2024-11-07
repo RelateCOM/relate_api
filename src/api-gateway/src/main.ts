@@ -1,26 +1,22 @@
 import { NestFactory } from '@nestjs/core';
-import { AppModule } from './app.module';
 import * as cookieParser from 'cookie-parser';
-import { CsrfFilter, nestCsrf } from 'ncsrf';
 import { ValidationPipe } from '@nestjs/common';
 import * as cors from 'cors';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { AppModule } from './app.module';
+// import { doubleCsrf } from 'csrf-csrf';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-  const PORT = process.env.PORT ?? 3000;
+  const PORT = process.env.PORT;
 
-  // Parse cookies and CSRF tokens
   app.use(cookieParser());
-  // Enable CSRF protection (Cross-Site Request Forgery)
-  app.use(nestCsrf());
-  // Apply CSRF protection globally for all controllers in the application
-  app.useGlobalFilters(new CsrfFilter());
-  // Apply validation globally for all controllers in the application
+  // const { doubleCsrfProtection } = doubleCsrf({
+  //   getSecret: () => process.env.CSRF_KEY,
+  // });
+  // app.use(doubleCsrfProtection);
   app.useGlobalPipes(new ValidationPipe());
-  // Set global prefix for all controllers in the application
   app.setGlobalPrefix('api');
-  // Enable CORS for all routes
   app.use(
     cors({
       credentials: true,

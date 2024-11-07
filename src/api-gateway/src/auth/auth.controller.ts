@@ -10,10 +10,10 @@ import {
 import { ClientProxy } from '@nestjs/microservices';
 import { Roles } from 'src/guard/auth-roles.decorator/auth-roles.decorator';
 import { RoleAuthGuard } from 'src/guard/role-auth/role-auth.guard';
-import { SignInDto } from '../../../auth-service/src/auth/dto/sign-in.dto';
-import { SignUpDto } from '../../../auth-service/src/auth/dto/sign-up.dto';
-import { RefreshTokenDto } from '../../../auth-service/src/auth/dto/refresh-token.dto';
 import { Response } from 'express';
+import { SignInDto } from 'src/dto/sign-in.dto';
+import { SignUpDto } from 'src/dto/sign-up.dto';
+import { RefreshTokenDto } from 'src/dto/refresh-token.dto';
 
 @Controller()
 export class AuthController {
@@ -27,18 +27,7 @@ export class AuthController {
     @Body() signInDto: SignInDto,
     @Res({ passthrough: true }) response: Response,
   ) {
-    const { user, tokens } = this.authClient.send('signIn', signInDto);
-    response.cookie('accessToken', `Bearer ${tokens.accessToken}`, {
-      sameSite: 'lax',
-      path: '/',
-      secure: false,
-      httpOnly: true,
-    });
-
-    response.send({
-      user,
-      token: tokens.refreshToken,
-    });
+    return this.authClient.send('signIn', { signInDto, response });
   }
 
   @Post('/sign_up')
@@ -46,18 +35,7 @@ export class AuthController {
     @Body() signUpDto: SignUpDto,
     @Res({ passthrough: true }) response: Response,
   ) {
-    const { user, tokens } = this.authClient.send('signUp', signUpDto);
-    response.cookie('accessToken', `Bearer ${tokens.accessToken}`, {
-      sameSite: 'lax',
-      path: '/',
-      secure: false,
-      httpOnly: true,
-    });
-
-    response.send({
-      user,
-      token: tokens.refreshToken,
-    });
+    return this.authClient.send('signUp', { signUpDto, response });
   }
 
   @Post('/refresh')
@@ -65,17 +43,15 @@ export class AuthController {
     @Body() refreshTokenDto: RefreshTokenDto,
     @Res({ passthrough: true }) response: Response,
   ) {
-    const tokens = this.authClient.send('refresh', refreshTokenDto);
-    response.cookie('accessToken', `Bearer ${tokens.accessToken}`, {
-      sameSite: 'lax',
-      path: '/',
-      secure: false,
-      httpOnly: true,
-    });
+    return this.authClient.send('refresh', { refreshTokenDto, response });
+  }
 
-    response.send({
-      token: tokens.refreshToken,
-    });
+  @Post('/logout')
+  logout(
+    @Body() refreshTokenDto: RefreshTokenDto,
+    @Res({ passthrough: true }) response: Response,
+  ) {
+    return this.authClient.send('logout', { refreshTokenDto, response });
   }
 
   @Roles('ADMIN')

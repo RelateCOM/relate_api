@@ -6,7 +6,7 @@ import { ClientsModule, Transport } from '@nestjs/microservices';
 @Module({
   imports: [
     ConfigModule.forRoot({
-      envFilePath: `./.env`,
+      envFilePath: `.env`,
     }),
     JwtModule.register({
       secret: process.env.PRIVATE_KEY ?? 'SECRET',
@@ -18,6 +18,8 @@ import { ClientsModule, Transport } from '@nestjs/microservices';
         options: {
           urls: [process.env.RABBITMQ_URL],
           queue: process.env.RABBITMQ_AUTH_QUEUE,
+          // urls: ['amqp://localhost:5672'],
+          // queue: 'auth_queue',
           queueOptions: {
             durable: false,
           },

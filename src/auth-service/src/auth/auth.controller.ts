@@ -10,6 +10,7 @@ import { SignInDto } from './dto/sign-in.dto';
 import { SignUpDto } from './dto/sign-up.dto';
 import { AddRoleAddDto } from './dto/addRole.dto';
 import { RefreshTokenDto } from './dto/refresh-token.dto';
+import { Response } from 'express';
 
 @UseInterceptors(ClassSerializerInterceptor)
 @Controller()
@@ -17,27 +18,27 @@ export class AuthController {
   constructor(private authService: AuthService) {} // injection service
 
   @MessagePattern('signIn')
-  signIn(@Payload() signInDto: SignInDto): Promise<object> {
-    return this.authService.signIn(signInDto);
+  signIn(@Payload() signInDto: SignInDto, response: Response) {
+    return this.authService.signIn(signInDto, response);
   }
 
   @MessagePattern('signUp')
-  signUp(@Payload() signUpDto: SignUpDto): Promise<object> {
-    return this.authService.signUp(signUpDto);
+  signUp(@Payload() signUpDto: SignUpDto, response: Response) {
+    return this.authService.signUp(signUpDto, response);
   }
 
   @MessagePattern('refresh')
-  refresh(@Payload() refreshTokenDto: RefreshTokenDto): Promise<object> {
-    return this.authService.refresh(refreshTokenDto);
+  refresh(@Payload() refreshTokenDto: RefreshTokenDto, response: Response) {
+    return this.authService.refresh(refreshTokenDto, response);
   }
 
   @MessagePattern('logout')
-  logout(@Payload() { token }: RefreshTokenDto): Promise<object> {
-    return this.authService.logout(token);
+  logout(@Payload() refreshTokenDto: RefreshTokenDto, response: Response) {
+    return this.authService.logout(refreshTokenDto, response);
   }
 
   @MessagePattern('add.role')
-  addRoleToUser(@Payload() addRoledto: AddRoleAddDto): Promise<object> {
+  addRoleToUser(@Payload() addRoledto: AddRoleAddDto) {
     return this.authService.addRoleToUser(addRoledto);
   }
 
