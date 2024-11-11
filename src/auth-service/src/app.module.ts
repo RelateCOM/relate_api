@@ -20,7 +20,6 @@ import { AuthEntity } from './auth/entities/auth.entity';
       database: process.env.POSTGRES_DB,
       entities: [RoleEntity, AuthEntity],
       autoLoadEntities: true,
-      //NB! attr synchronize is not safe for prod, migrations is better.
       synchronize: true,
     }),
     RoleModule,

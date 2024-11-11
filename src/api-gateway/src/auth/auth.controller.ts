@@ -1,16 +1,7 @@
-import {
-  Body,
-  Controller,
-  Get,
-  Inject,
-  Post,
-  Res,
-  UseGuards,
-} from '@nestjs/common';
+import { Body, Controller, Get, Inject, Post, UseGuards } from '@nestjs/common';
 import { ClientProxy } from '@nestjs/microservices';
 import { Roles } from 'src/guard/auth-roles.decorator/auth-roles.decorator';
 import { RoleAuthGuard } from 'src/guard/role-auth/role-auth.guard';
-import { Response } from 'express';
 import { SignInDto } from 'src/dto/sign-in.dto';
 import { SignUpDto } from 'src/dto/sign-up.dto';
 import { RefreshTokenDto } from 'src/dto/refresh-token.dto';
@@ -23,35 +14,23 @@ export class AuthController {
   ) {}
 
   @Post('/sign_in')
-  signIn(
-    @Body() signInDto: SignInDto,
-    @Res({ passthrough: true }) response: Response,
-  ) {
-    return this.authClient.send('signIn', { signInDto, response });
+  signIn(@Body() signInDto: SignInDto) {
+    return this.authClient.send('signIn', signInDto);
   }
 
   @Post('/sign_up')
-  signUp(
-    @Body() signUpDto: SignUpDto,
-    @Res({ passthrough: true }) response: Response,
-  ) {
-    return this.authClient.send('signUp', { signUpDto, response });
+  signUp(@Body() signUpDto: SignUpDto) {
+    return this.authClient.send('signUp', signUpDto);
   }
 
   @Post('/refresh')
-  refresh(
-    @Body() refreshTokenDto: RefreshTokenDto,
-    @Res({ passthrough: true }) response: Response,
-  ) {
-    return this.authClient.send('refresh', { refreshTokenDto, response });
+  refresh(@Body() refreshTokenDto: RefreshTokenDto) {
+    return this.authClient.send('refresh', refreshTokenDto);
   }
 
   @Post('/logout')
-  logout(
-    @Body() refreshTokenDto: RefreshTokenDto,
-    @Res({ passthrough: true }) response: Response,
-  ) {
-    return this.authClient.send('logout', { refreshTokenDto, response });
+  logout(@Body() refreshTokenDto: RefreshTokenDto) {
+    return this.authClient.send('logout', refreshTokenDto);
   }
 
   @Roles('ADMIN')

@@ -101,7 +101,7 @@ export class AuthService {
     };
   }
 
-  async signUp(signUpDto: SignUpDto, response: Response) {
+  async signUp(signUpDto: SignUpDto) {
     const { username, email, password } = signUpDto;
     const candidate = await this.getUserByEmail(email);
 
@@ -122,38 +122,24 @@ export class AuthService {
 
     const tokens = await this.generateUserTokens(user);
 
-    response.cookie('accessToken', `Bearer ${tokens.accessToken}`, {
-      sameSite: 'lax',
-      path: '/',
-      secure: false,
-      httpOnly: true,
-    });
-
-    response.send({
+    return {
       user,
-      token: tokens.refreshToken,
-    });
+      tokens,
+    };
   }
 
-  async signIn(signInDto: SignInDto, response: Response) {
+  async signIn(signInDto: SignInDto) {
     const user = await this.validateUser(signInDto);
 
     const tokens = await this.generateUserTokens(user);
 
-    response.cookie('accessToken', `Bearer ${tokens.accessToken}`, {
-      sameSite: 'lax',
-      path: '/',
-      secure: false,
-      httpOnly: true,
-    });
-
-    response.send({
+    return {
       user,
-      token: tokens.refreshToken,
-    });
+      tokens,
+    };
   }
 
-  async refresh(refreshToken: RefreshTokenDto, response: Response) {
+  async refresh(refreshToken: RefreshTokenDto) {
     const token = await this.jwtService.verifyAsync(refreshToken.token);
     if (!token) throw new UnauthorizedException('Refresh token is invalid');
 
@@ -161,15 +147,10 @@ export class AuthService {
     if (!user) throw new UnauthorizedException('User not found');
 
     const tokens = await this.generateUserTokens(user);
-    response.cookie('accessToken', `Bearer ${tokens.accessToken}`, {
-      sameSite: 'lax',
-      path: '/',
-      secure: false,
-      httpOnly: true,
-    });
-    response.send({
-      token: tokens.refreshToken,
-    });
+
+    return {
+      tokens,
+    };
   }
 
   async logout(refreshTokenDto: RefreshTokenDto, response: Response) {
