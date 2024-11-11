@@ -15,7 +15,6 @@ import * as bcrypt from 'bcryptjs';
 import { SignInDto } from './dto/sign-in.dto';
 import { RefreshTokenDto } from './dto/refresh-token.dto';
 import { AddRoleAddDto } from './dto/addRole.dto';
-import { Response } from 'express';
 
 @Injectable()
 export class AuthService {
@@ -84,9 +83,9 @@ export class AuthService {
   }
 
   async generateUserTokens(user: AuthEntity) {
-    const { id, email } = user;
+    const { id, email, role } = user;
     const accessToken = await this.jwtService.signAsync(
-      { id },
+      { id, role },
       { expiresIn: '5min' },
     );
 
@@ -106,9 +105,8 @@ export class AuthService {
     const candidate = await this.getUserByEmail(email);
 
     if (candidate) {
-      throw new HttpException(
+      throw new UnauthorizedException(
         `User with login ${email} already exists!`,
-        HttpStatus.BAD_REQUEST,
       );
     }
 
@@ -139,8 +137,8 @@ export class AuthService {
     };
   }
 
-  async refresh(refreshToken: RefreshTokenDto) {
-    const token = await this.jwtService.verifyAsync(refreshToken.token);
+  async refresh(dto: RefreshTokenDto) {
+    const token = await this.jwtService.verifyAsync(dto.refreshToken);
     if (!token) throw new UnauthorizedException('Refresh token is invalid');
 
     const user = await this.getUserByEmail(token.email);
@@ -153,11 +151,11 @@ export class AuthService {
     };
   }
 
-  async logout(refreshTokenDto: RefreshTokenDto, response: Response) {
-    const { token } = refreshTokenDto;
+  async logout(refreshTokenDto: RefreshTokenDto) {
+    const { refreshToken } = refreshTokenDto;
     try {
-      await this.jwtService.verifyAsync(token);
-      response.clearCookie('accessToken');
+      const token = await this.jwtService.verifyAsync(refreshToken);
+      token.destroy();
     } catch (err) {
       console.error('Error logging out user:', err);
       throw new UnauthorizedException('Failed to log out user');
@@ -186,5 +184,16 @@ export class AuthService {
 
   async deleteUser(userId: number): Promise<any> {
     return await this.authRepository.delete(userId);
+  }
+
+  async getProfile(userId: number) {
+    const user = await this.authRepository.findOne({
+      where: { id: userId },
+      relations: { role: true },
+    });
+    if (!user) {
+      throw new HttpException('User not found', HttpStatus.NOT_FOUND);
+    }
+    return user;
   }
 }

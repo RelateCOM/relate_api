@@ -8,10 +8,8 @@ async function bootstrap() {
     {
       transport: Transport.RMQ,
       options: {
-        urls: [process.env.RABBITMQ_URL], //['amqp://localhost:5672'],
-        queue: process.env.RABBITMQ_AUTH_QUEUE, //'auth_queue',
-        // urls: ['amqp://localhost:5672'],
-        // queue: 'auth_queue',
+        urls: [process.env.RABBITMQ_URL],
+        queue: process.env.RABBITMQ_AUTH_QUEUE,
         queueOptions: {
           durable: false,
         },

@@ -19,8 +19,6 @@ import { AuthController } from './auth.controller';
         options: {
           urls: [process.env.RABBITMQ_URL],
           queue: process.env.RABBITMQ_AUTH_QUEUE,
-          // urls: ['amqp://localhost:5672'],
-          // queue: 'auth_queue',
           queueOptions: {
             durable: false,
           },

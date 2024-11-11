@@ -1,10 +1,20 @@
-import { Body, Controller, Get, Inject, Post, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Inject,
+  Post,
+  Req,
+  UseGuards,
+} from '@nestjs/common';
 import { ClientProxy } from '@nestjs/microservices';
-import { Roles } from 'src/guard/auth-roles.decorator/auth-roles.decorator';
-import { RoleAuthGuard } from 'src/guard/role-auth/role-auth.guard';
-import { SignInDto } from 'src/dto/sign-in.dto';
-import { SignUpDto } from 'src/dto/sign-up.dto';
-import { RefreshTokenDto } from 'src/dto/refresh-token.dto';
+// import { Roles } from 'src/guard/auth-roles.decorator/auth-roles.decorator';
+// import { RoleAuthGuard } from 'src/guard/role-auth/role-auth.guard';
+import { RefreshTokenDto } from './dto/refresh-token.dto';
+import { SignInDto } from './dto/sign-in.dto';
+import { SignUpDto } from './dto/sign-up.dto';
+import { AuthGuard } from 'src/guard/jwt/jwt.guard';
+import { Request } from 'express';
 
 @Controller()
 export class AuthController {
@@ -33,17 +43,23 @@ export class AuthController {
     return this.authClient.send('logout', refreshTokenDto);
   }
 
-  @Roles('ADMIN')
-  @UseGuards(RoleAuthGuard)
-  @Get('/users')
-  getAllUsers() {
-    return this.authClient.send('get.users.auth', '');
+  @UseGuards(AuthGuard)
+  @Get('/profile')
+  getProfile(@Req() req: Request & { id: number }) {
+    return this.authClient.send('get.profile', req.id);
   }
 
-  @Roles('ADMIN')
-  @UseGuards(RoleAuthGuard)
-  @Post('/role')
-  addRoleToUser(@Body() role: { value: string; userId: number }) {
-    return this.authClient.send('add.role', role);
-  }
+  // @Roles('ADMIN')
+  // @UseGuards(RoleAuthGuard)
+  // @Get('/users')
+  // getAllUsers() {
+  //   return this.authClient.send('get.users.auth', '');
+  // }
+
+  // @Roles('ADMIN')
+  // @UseGuards(RoleAuthGuard)
+  // @Post('/role')
+  // addRoleToUser(@Body() role: { value: string; userId: number }) {
+  //   return this.authClient.send('add.role', role);
+  // }
 }

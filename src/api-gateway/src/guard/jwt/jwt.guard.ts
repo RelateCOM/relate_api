@@ -6,7 +6,6 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { Request } from 'express';
 import { Observable } from 'rxjs';
 
 @Injectable()
@@ -17,22 +16,22 @@ export class AuthGuard implements CanActivate {
     context: ExecutionContext,
   ): boolean | Promise<boolean> | Observable<boolean> {
     const request = context.switchToHttp().getRequest();
-    const token: string | undefined = this.extractTokenFromCookie(request);
-
-    if (!token) throw new UnauthorizedException('Token not found');
-
     try {
+      const authHeader = request.headers.authorization;
+      const bearer = authHeader.split(' ')[0];
+      const token = authHeader.split(' ')[1];
+      if (bearer !== 'Bearer' || !token) {
+        throw new UnauthorizedException({
+          message: 'User is not authorized',
+        });
+      }
       const payload = this.jwtService.verify(token);
-      request.userId = payload.userId;
+      request.id = payload.id;
     } catch (error) {
       Logger.error(error.message);
       throw new UnauthorizedException(error.message);
     }
 
     return true;
-  }
-
-  private extractTokenFromCookie(request: Request): string | undefined {
-    return request.cookies.accessToken?.split(' ')[1];
   }
 }

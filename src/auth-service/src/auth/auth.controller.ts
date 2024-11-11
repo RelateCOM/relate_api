@@ -1,7 +1,6 @@
 import {
   ClassSerializerInterceptor,
   Controller,
-  Res,
   UseInterceptors,
 } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
@@ -11,12 +10,11 @@ import { SignInDto } from './dto/sign-in.dto';
 import { SignUpDto } from './dto/sign-up.dto';
 import { AddRoleAddDto } from './dto/addRole.dto';
 import { RefreshTokenDto } from './dto/refresh-token.dto';
-import { Response } from 'express';
 
 @UseInterceptors(ClassSerializerInterceptor)
 @Controller()
 export class AuthController {
-  constructor(private authService: AuthService) {} // injection service
+  constructor(private authService: AuthService) {}
 
   @MessagePattern('signIn')
   signIn(@Payload() signInDto: SignInDto) {
@@ -34,11 +32,13 @@ export class AuthController {
   }
 
   @MessagePattern('logout')
-  logout(
-    @Payload() refreshTokenDto: RefreshTokenDto,
-    @Res() response: Response,
-  ) {
-    return this.authService.logout(refreshTokenDto, response);
+  logout(@Payload() refreshTokenDto: RefreshTokenDto) {
+    return this.authService.logout(refreshTokenDto);
+  }
+
+  @MessagePattern('get.profile')
+  getProfile(@Payload() id: number) {
+    return this.authService.getProfile(id);
   }
 
   @MessagePattern('add.role')

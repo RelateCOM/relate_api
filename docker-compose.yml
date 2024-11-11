@@ -1,18 +1,6 @@
 version: "3.9"
 
 services:
-  postgres_profile:
-    container_name: profile_db
-    hostname: profile_db
-    image: postgres:latest
-    environment:
-      PG_DATA: /var/lib/postgresql/data
-      POSTGRES_DB: profile
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-    ports:
-      - "5431:5432"
-
   postgres_auth:
     container_name: auth_db
     hostname: auth_db
@@ -32,28 +20,6 @@ services:
     ports:
       - "15672:15672"
       - "5672:5672"
-
-  profile:
-    container_name: profile
-    build: ./src/profile-service
-    environment:
-      - PORT=3002
-      - POSTGRES_HOST=profile_db
-      - POSTGRES_PORT=5432
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
-      - POSTGRES_DATABASE=profile
-      - RMQ_URL=amqp://rabbitmq:5672
-      - RABBITMQ_PROFILE_QUEUE=profile_queue
-      - RABBITMQ_AUTH_QUEUE=auth_queue
-    ports:
-      - "3002:3002"
-    depends_on:
-      - rabbitmq
-      - postgres_profile
-      - auth
-    links:
-      - postgres_profile
 
   auth:
     container_name: auth
@@ -83,8 +49,6 @@ services:
     environment:
       - PORT=3000
       - RABBITMQ_AUTH_QUEUE=auth_queue
-      - RABBITMQ_PROFILE_QUEUE=profiles_queue
     depends_on:
       - rabbitmq
       - auth
-      - profile

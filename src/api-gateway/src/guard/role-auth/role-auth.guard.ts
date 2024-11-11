@@ -11,7 +11,6 @@ import { Observable } from 'rxjs';
 import { Reflector } from '@nestjs/core';
 import { JwtService } from '@nestjs/jwt';
 import { ROLES_KEY } from '../auth-roles.decorator/auth-roles.decorator';
-import { Request } from 'express';
 
 @Injectable()
 export class RoleAuthGuard implements CanActivate {
@@ -19,10 +18,6 @@ export class RoleAuthGuard implements CanActivate {
     private jwtService: JwtService,
     private reflector: Reflector,
   ) {}
-
-  private extractTokenFromCookie(request: Request): string | undefined {
-    return request.cookies.accessToken?.split(' ')[1];
-  }
 
   canActivate(
     context: ExecutionContext,
@@ -38,13 +33,18 @@ export class RoleAuthGuard implements CanActivate {
       }
 
       const request = context.switchToHttp().getRequest();
-
-      const token: string | undefined = this.extractTokenFromCookie(request);
-
-      if (!token) throw new UnauthorizedException('Token not found');
       try {
+        const authHeader = request.headers.authorization;
+        const bearer = authHeader.split(' ')[0];
+        const token = authHeader.split(' ')[1];
+
+        if (bearer !== 'Bearer' || !token) {
+          throw new UnauthorizedException({
+            message: 'User is not authorized',
+          });
+        }
         const payload = this.jwtService.verify(token);
-        request.userId = payload.userId;
+        request.id = payload.id;
         return payload.role.some((role) => requiredRoles.includes(role.value));
       } catch (error) {
         Logger.error(error.message);
