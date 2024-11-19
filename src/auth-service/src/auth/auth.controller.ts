@@ -34,19 +34,4 @@ export class AuthController {
   logout(@Payload() refreshTokenDto: RefreshTokenDto) {
     return this.authService.logout(refreshTokenDto);
   }
-
-  @MessagePattern('get.profile')
-  getProfile(@Payload() id: number) {
-    return this.authService.getProfile(id);
-  }
-
-  @MessagePattern('get.users.auth')
-  getAllUsers(): Promise<object[]> {
-    return this.authService.getAllUsers();
-  }
-
-  @MessagePattern('delete.user')
-  deleteUser(@Payload() id: number) {
-    return this.authService.deleteUser(Number(id));
-  }
 }

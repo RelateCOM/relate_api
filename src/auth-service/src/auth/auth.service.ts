@@ -1,77 +1,69 @@
 import {
-  HttpException,
-  HttpStatus,
+  Inject,
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
 import { JwtService } from '@nestjs/jwt';
 import { SignUpDto } from './dto/sign-up.dto';
 import * as bcrypt from 'bcryptjs';
 import { SignInDto } from './dto/sign-in.dto';
 import { RefreshTokenDto } from './dto/refresh-token.dto';
+import { ClientProxy } from '@nestjs/microservices';
 
 @Injectable()
 export class AuthService {
-  constructor(private jwtService: JwtService) {}
+  constructor(
+    private jwtService: JwtService,
+    @Inject('USERS_SERVICE')
+    private usersClient: ClientProxy,
+  ) {}
 
-  private async getUserByEmail(email: string): Promise<AuthEntity | null> {
-    const user = await this.authRepository.findOne({
-      where: { email },
-      relations: {
-        role: true,
-      },
-    });
-    return user;
-  }
+  // private async validateUser(signInDto: SignInDto): Promise<AuthEntity> {
+  //   const { email, password } = signInDto;
+  //   const user = await this.getUserByEmail(email);
+  //   if (!user) throw new UnauthorizedException('Invalid email');
 
-  private async validateUser(signInDto: SignInDto): Promise<AuthEntity> {
-    const { email, password } = signInDto;
-    const user = await this.getUserByEmail(email);
-    if (!user) throw new UnauthorizedException('Invalid email');
+  //   const isPasswordMatched = bcrypt.compare(password, user.password);
+  //   if (!isPasswordMatched) throw new UnauthorizedException('Invalid password');
 
-    const isPasswordMatched = bcrypt.compare(password, user.password);
-    if (!isPasswordMatched) throw new UnauthorizedException('Invalid password');
+  //   return user;
+  // }
 
-    return user;
-  }
+  // private async createUser(userDto: SignUpDto): Promise<AuthEntity> {
+  //   let user_role = await this.roleService.getRoleByValue('USER');
 
-  private async createUser(userDto: SignUpDto): Promise<AuthEntity> {
-    let user_role = await this.roleService.getRoleByValue('USER');
+  //   const { email, username, password } = userDto;
 
-    const { email, username, password } = userDto;
+  //   if (!user_role) {
+  //     const newRole = await this.roleRepository.create({
+  //       value: 'USER',
+  //       description: 'User',
+  //     });
+  //     await this.roleRepository.save(newRole);
+  //     user_role = await this.roleService.getRoleByValue('USER');
+  //   }
 
-    if (!user_role) {
-      const newRole = await this.roleRepository.create({
-        value: 'USER',
-        description: 'User',
-      });
-      await this.roleRepository.save(newRole);
-      user_role = await this.roleService.getRoleByValue('USER');
-    }
+  //   if (email == process.env.SUPER_USER) {
+  //     const admin = await this.roleRepository.create({
+  //       value: 'ADMIN',
+  //       description: 'Administrator',
+  //     });
+  //     await this.roleRepository.save(admin);
+  //     user_role = await this.roleService.getRoleByValue('ADMIN');
+  //   }
 
-    if (email == process.env.SUPER_USER) {
-      const admin = await this.roleRepository.create({
-        value: 'ADMIN',
-        description: 'Administrator',
-      });
-      await this.roleRepository.save(admin);
-      user_role = await this.roleService.getRoleByValue('ADMIN');
-    }
+  //   // Save data in table user_auth
+  //   const user_auth = await this.authRepository.save({
+  //     username,
+  //     email,
+  //     password,
+  //     role: [user_role],
+  //     relations: { role: true },
+  //   });
+  //   return user_auth;
+  // }
 
-    // Save data in table user_auth
-    const user_auth = await this.authRepository.save({
-      username,
-      email,
-      password,
-      role: [user_role],
-      relations: { role: true },
-    });
-    return user_auth;
-  }
-
-  async generateUserTokens(user: AuthEntity) {
+  async generateUserTokens(user) {
     const { id, email, role } = user;
     const accessToken = await this.jwtService.signAsync(
       { id, role },
@@ -91,7 +83,7 @@ export class AuthService {
 
   async signUp(signUpDto: SignUpDto) {
     const { username, email, password } = signUpDto;
-    const candidate = await this.getUserByEmail(email);
+    const candidate = this.usersClient.send('user.by.email', email);
 
     if (candidate) {
       throw new UnauthorizedException(
@@ -151,38 +143,5 @@ export class AuthService {
     } finally {
       return { message: 'User logged out successfully' };
     }
-  }
-
-  async addRoleToUser(dto: AddRoleAddDto): Promise<AuthEntity> {
-    const user = await this.authRepository.findOne({
-      where: { id: dto.userId },
-      relations: { role: true },
-    });
-    const user_role = await this.roleService.getRoleByValue(dto.value);
-    if (user_role && user) {
-      user.role.push(user_role);
-      await this.authRepository.save(user);
-      return user;
-    }
-    throw new HttpException('User or role are not found', HttpStatus.NOT_FOUND);
-  }
-
-  async getAllUsers(): Promise<AuthEntity[]> {
-    return await this.authRepository.find();
-  }
-
-  async deleteUser(userId: number): Promise<any> {
-    return await this.authRepository.delete(userId);
-  }
-
-  async getProfile(userId: number) {
-    const user = await this.authRepository.findOne({
-      where: { id: userId },
-      relations: { role: true },
-    });
-    if (!user) {
-      throw new HttpException('User not found', HttpStatus.NOT_FOUND);
-    }
-    return user;
   }
 }

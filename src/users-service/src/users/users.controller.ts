@@ -32,4 +32,9 @@ export class UsersController {
   remove(@Payload() id: number) {
     return this.usersService.remove(id);
   }
+
+  @MessagePattern('user.by.email')
+  findByEmail(@Payload() email: string) {
+    return this.usersService.findByEmail(email);
+  }
 }

@@ -1,9 +1,14 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 
 @Injectable()
 export class UsersService {
+
+  constructor(
+    @Inject(User)
+    private readonly userRepository: Repository<User>,
+  )
   create(createUserDto: CreateUserDto) {
     return 'This action adds a new user';
   }
@@ -22,5 +27,15 @@ export class UsersService {
 
   remove(id: number) {
     return `This action removes a #${id} user`;
+  }
+
+  findByEmail(email: string) {
+    const user = await this.authRepository.findOne({
+      where: { email },
+      relations: {
+        role: true,
+      },
+    });
+    return user;
   }
 }

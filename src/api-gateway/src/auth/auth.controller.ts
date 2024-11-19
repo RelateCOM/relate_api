@@ -16,7 +16,7 @@ import { SignUpDto } from './dto/sign-up.dto';
 import { AuthGuard } from 'src/guard/jwt/jwt.guard';
 import { Request } from 'express';
 
-@Controller()
+@Controller('auth')
 export class AuthController {
   constructor(
     @Inject('AUTH_SERVICE')
