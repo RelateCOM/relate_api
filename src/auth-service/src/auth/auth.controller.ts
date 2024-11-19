@@ -8,7 +8,6 @@ import { MessagePattern, Payload } from '@nestjs/microservices';
 import { AuthService } from './auth.service';
 import { SignInDto } from './dto/sign-in.dto';
 import { SignUpDto } from './dto/sign-up.dto';
-import { AddRoleAddDto } from './dto/addRole.dto';
 import { RefreshTokenDto } from './dto/refresh-token.dto';
 
 @UseInterceptors(ClassSerializerInterceptor)
@@ -39,11 +38,6 @@ export class AuthController {
   @MessagePattern('get.profile')
   getProfile(@Payload() id: number) {
     return this.authService.getProfile(id);
-  }
-
-  @MessagePattern('add.role')
-  addRoleToUser(@Payload() addRoledto: AddRoleAddDto) {
-    return this.authService.addRoleToUser(addRoledto);
   }
 
   @MessagePattern('get.users.auth')

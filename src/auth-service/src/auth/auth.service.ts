@@ -5,33 +5,22 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { AuthEntity } from './entities/auth.entity';
 import { Repository } from 'typeorm';
 import { JwtService } from '@nestjs/jwt';
-import { RoleEntity } from 'src/role/entities/role.entity';
-import { RoleService } from 'src/role/role.service';
 import { SignUpDto } from './dto/sign-up.dto';
 import * as bcrypt from 'bcryptjs';
 import { SignInDto } from './dto/sign-in.dto';
 import { RefreshTokenDto } from './dto/refresh-token.dto';
-import { AddRoleAddDto } from './dto/addRole.dto';
 
 @Injectable()
 export class AuthService {
-  constructor(
-    @InjectRepository(AuthEntity)
-    private authRepository: Repository<AuthEntity>,
-    private jwtService: JwtService,
-    @InjectRepository(RoleEntity)
-    private roleRepository: Repository<RoleEntity>,
-    private roleService: RoleService,
-  ) {}
+  constructor(private jwtService: JwtService) {}
 
   private async getUserByEmail(email: string): Promise<AuthEntity | null> {
     const user = await this.authRepository.findOne({
       where: { email },
       relations: {
-        role: true, // Bidirectional relations one-to-one
+        role: true,
       },
     });
     return user;
