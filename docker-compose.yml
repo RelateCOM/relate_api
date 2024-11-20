@@ -1,0 +1,70 @@
+version: "3.9"
+
+services:
+  postgres_users:
+      container_name: users_db
+      hostname: users_db
+      image: postgres:latest
+      environment:
+        PG_DATA: /var/lib/postgresql/data
+        POSTGRES_DB: users
+        POSTGRES_USER: postgres
+        POSTGRES_PASSWORD: postgres
+      ports:
+        - "5431:5432"
+
+  rabbitmq:
+    container_name: rabbitmq
+    hostname: rabbitmq
+    image: rabbitmq:4.0-management
+    ports:
+      - "15672:15672"
+      - "5672:5672"
+
+  users:
+    container_name: users
+    build: ./apps/users-service
+    environment:
+      - PORT=3002
+      - POSTGRES_HOST=users_db
+      - POSTGRES_PORT=5432
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=users
+      - RMQ_URL=amqp://rabbitmq:5672
+      - RABBITMQ_USERS_QUEUE=users_queue
+    ports:
+      - "3002:3002"
+    depends_on:
+      - rabbitmq
+      - postgres_users
+    links:
+      - postgres_users
+
+  auth:
+    container_name: auth
+    build: ./apps/auth-service
+    environment:
+      - PORT=3001
+      - RMQ_URL=amqp://rabbitmq:5672
+      - RABBITMQ_AUTH_QUEUE=auth_queue
+      - RABBITMQ_USERS_QUEUE=users_queue
+    ports:
+      - "3001:3001"
+    depends_on:
+      - rabbitmq
+      - users
+
+  gateway:
+    container_name: gateway
+    build: ./apps/gateway
+    ports:
+      - '3000:3000'
+    environment:
+      - PORT=3000
+      - RMQ_URL=amqp://rabbitmq:5672
+      - RABBITMQ_AUTH_QUEUE=auth_queue
+    depends_on:
+      - rabbitmq
+      - auth
+      - users
