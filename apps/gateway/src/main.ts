@@ -1,7 +1,7 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
-import { doubleCsrf } from 'csrf-csrf';
+// import { doubleCsrf } from 'csrf-csrf';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -11,11 +11,15 @@ async function bootstrap() {
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
     credentials: true,
   });
+  // ! ==============
+  // TODO: setup CSRF
+  // ! ==============
   // CSRF
-  const { doubleCsrfProtection } = doubleCsrf({
-    getSecret: () => process.env.CSRF ?? 'Secret',
-  });
-  app.use(doubleCsrfProtection);
+  // const { doubleCsrfProtection } = doubleCsrf({
+  //   getSecret: () => process.env.CSRF ?? 'Secret',
+  // });
+  // app.use(doubleCsrfProtection);
+  //
   // PREFIX
   app.setGlobalPrefix('api');
   // SWAGGER

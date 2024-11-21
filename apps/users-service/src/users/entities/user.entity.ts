@@ -10,6 +10,11 @@ export class UsersEntity {
   id: number;
 
   @Column({
+    length: 20,
+  })
+  username: string;
+
+  @Column({
     length: 30,
     unique: true,
   })
