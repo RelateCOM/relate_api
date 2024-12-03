@@ -13,6 +13,18 @@ services:
       ports:
         - "5431:5432"
 
+  # postgres_messenger:
+  #     container_name: messenger_db
+  #     hostname: messenger_db
+  #     image: postgres:latest
+  #     environment:
+  #       PG_DATA: /var/lib/postgresql/data
+  #       POSTGRES_DB: messenger
+  #       POSTGRES_USER: postgres
+  #       POSTGRES_PASSWORD: postgres
+  #     ports:
+  #       - "5433:5432"
+
   rabbitmq:
     container_name: rabbitmq
     hostname: rabbitmq
@@ -46,6 +58,7 @@ services:
     build: ./apps/auth-service
     environment:
       - PORT=3001
+      - PRIVATE_KEY=dsD@*7H%hs
       - RMQ_URL=amqp://rabbitmq:5672
       - RABBITMQ_AUTH_QUEUE=auth_queue
       - RABBITMQ_USERS_QUEUE=users_queue
@@ -62,8 +75,11 @@ services:
       - '3000:3000'
     environment:
       - PORT=3000
+      - CSRF=secret.csrf
+      - PRIVATE_KEY=dsD@*7H%hs
       - RMQ_URL=amqp://rabbitmq:5672
       - RABBITMQ_AUTH_QUEUE=auth_queue
+      - RABBITMQ_USERS_QUEUE=users_queue
     depends_on:
       - rabbitmq
       - auth

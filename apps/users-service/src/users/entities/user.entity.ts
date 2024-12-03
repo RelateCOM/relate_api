@@ -1,6 +1,5 @@
 import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
 
-// Model of table for user's authorization
 @Entity({ name: 'users' })
 export class UsersEntity {
   @PrimaryGeneratedColumn({

@@ -17,15 +17,15 @@ export class UsersController {
     return this.usersService.findOneByEmail(email);
   }
 
-  // @MessagePattern('findAllUsers')
-  // findAll() {
-  //   return this.usersService.findAll();
-  // }
+  @MessagePattern('users.findAll')
+  async findAll() {
+    return await this.usersService.findAll();
+  }
 
-  // @MessagePattern('findOneUser')
-  // findOne(@Payload() id: number) {
-  //   return this.usersService.findOne(id);
-  // }
+  @MessagePattern('users.findById')
+  findOne(@Payload() id: number) {
+    return this.usersService.findOneById(id);
+  }
 
   // @MessagePattern('updateUser')
   // update(@Payload() updateUserDto: UpdateUserDto) {
