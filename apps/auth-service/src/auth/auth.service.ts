@@ -3,42 +3,49 @@ import {
   HttpStatus,
   Inject,
   Injectable,
-  UnauthorizedException,
+  Logger,
 } from '@nestjs/common';
-import { ClientProxy } from '@nestjs/microservices';
 import { SignUpDto } from './dtos/SignUp.dto';
 import { SignInDto } from './dtos/SignIn.dto';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcryptjs';
-import { lastValueFrom } from 'rxjs';
+import { InjectRepository } from '@nestjs/typeorm';
+import { UserEntity } from './entity/user.entity';
+import { Repository } from 'typeorm';
+import { ClientProxy } from '@nestjs/microservices';
 
 @Injectable()
 export class AuthService {
   constructor(
-    @Inject('USERS_SERVICE') private usersClient: ClientProxy,
+    @InjectRepository(UserEntity)
+    private readonly userRepository: Repository<UserEntity>,
+    @Inject('PROFILE_SERVICE') private profileClient: ClientProxy,
     private jwtService: JwtService,
   ) {}
 
   private async validateUser(signInDto: SignInDto) {
     const { email, password } = signInDto;
-    const user = await lastValueFrom(
-      this.usersClient.send('users.findByEmail', email),
-    );
-    if (!user) throw new UnauthorizedException('Invalid email');
+    const user = await this.userRepository.findOne({
+      where: {
+        email,
+      },
+    });
+
+    if (!user)
+      throw new HttpException(
+        `User with login ${email} not found!`,
+        HttpStatus.UNAUTHORIZED,
+      );
 
     const isPasswordMatched = bcrypt.compare(password, user.password);
-    if (!isPasswordMatched) throw new UnauthorizedException('Invalid password');
+    if (!isPasswordMatched)
+      throw new HttpException('Invalid password', HttpStatus.UNAUTHORIZED);
 
     return user;
   }
 
-  private async generateUserTokens({
-    id,
-    email,
-  }: {
-    id: number;
-    email: string;
-  }) {
+  private async generateUserTokens(user: UserEntity) {
+    const { id, email } = user;
     const accessToken = await this.jwtService.signAsync(
       { id },
       { expiresIn: '5min' },
@@ -56,62 +63,51 @@ export class AuthService {
   }
 
   async signUp(signUpDto: SignUpDto) {
-    const { username, email, password } = signUpDto;
-    const candidate = await lastValueFrom(
-      this.usersClient.send('users.findByEmail', email),
-    );
+    const { email, password } = signUpDto;
+
+    const candidate = await this.userRepository.findOne({
+      where: {
+        email,
+      },
+    });
+
     if (candidate) {
       throw new HttpException(
         `User with login ${email} already exists!`,
-        HttpStatus.BAD_REQUEST,
+        HttpStatus.UNAUTHORIZED,
       );
     }
-    const hashedPassword = await bcrypt.hash(password, 10);
-    const user = await lastValueFrom(
-      this.usersClient.send('users.create', {
-        username,
-        email,
-        password: hashedPassword,
-      }),
-    );
 
-    const tokens = await this.generateUserTokens({
-      id: user.id,
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    const user = await this.userRepository.save({
+      email,
+      password: hashedPassword,
+    });
+    const profile = this.profileClient.send('profile.create', {
+      userId: user.id,
       email,
     });
-    return {
-      user: {
-        id: user.id,
-        email: user.email,
-        username: user.username,
-      },
-      tokens,
-    };
+    Logger.log(profile);
+
+    const tokens = await this.generateUserTokens(user);
+
+    return tokens;
   }
 
   async signIn(signInDto: SignInDto) {
     const user = await this.validateUser(signInDto);
 
-    const tokens = await this.generateUserTokens({
-      id: user.id,
-      email: user.email,
-    });
+    const tokens = await this.generateUserTokens(user);
 
-    return {
-      user: {
-        id: user.id,
-        email: user.email,
-        username: user.username,
-      },
-      tokens,
-    };
+    return tokens;
   }
 
   async logout(refreshToken: string) {
-    const token = await this.jwtService.verifyAsync(refreshToken);
-    if (!token) throw new UnauthorizedException('Refresh token is invalid');
+    // const token = await this.jwtService.verifyAsync(refreshToken);
+    // if (!token) throw new UnauthorizedException('Refresh token is invalid');
     // TODO: Implement actual logout logic here (e.g., invalidate refresh token)
-
+    Logger.log(refreshToken);
     return {
       message: 'Logged out successfully',
     };
@@ -119,21 +115,26 @@ export class AuthService {
 
   async refreshToken(refreshToken: string) {
     const token = await this.jwtService.verifyAsync(refreshToken);
-    if (!token) throw new UnauthorizedException('Refresh token is invalid');
+    if (!token)
+      throw new HttpException(
+        'Refresh token is invalid',
+        HttpStatus.UNAUTHORIZED,
+      );
 
-    const user = await lastValueFrom(
-      this.usersClient.send('users.findByEmail', token.email),
-    );
-
-    if (!user) throw new UnauthorizedException('User not found');
-
-    const tokens = await this.generateUserTokens({
-      id: user.id,
-      email: user.email,
+    const user = await this.userRepository.findOne({
+      where: {
+        email: token.email,
+      },
     });
 
-    return {
-      tokens,
-    };
+    if (!user)
+      throw new HttpException(
+        `User with login ${token.email} not found!`,
+        HttpStatus.UNAUTHORIZED,
+      );
+
+    const tokens = await this.generateUserTokens(user);
+
+    return tokens;
   }
 }

@@ -18,8 +18,8 @@ export class AuthController {
   }
 
   @MessagePattern('auth.logout')
-  logout(@Payload() token: string) {
-    return this.authService.logout(token);
+  logout(@Payload() refreshToken: string) {
+    return this.authService.logout(refreshToken);
   }
 
   @MessagePattern('auth.refreshToken')

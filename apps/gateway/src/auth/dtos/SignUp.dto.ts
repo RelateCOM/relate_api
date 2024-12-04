@@ -1,10 +1,6 @@
-import { IsEmail, IsNotEmpty, IsString, Length } from 'class-validator';
+import { IsEmail, IsString, Length } from 'class-validator';
 
 export class SignUpDto {
-  @IsString({ message: 'Always string!' })
-  @IsNotEmpty()
-  readonly username: string;
-
   @IsString({ message: 'Always string!' })
   @IsEmail({}, { message: 'Incorrect email address' })
   readonly email: string;

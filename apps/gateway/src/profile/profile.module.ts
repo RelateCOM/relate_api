@@ -1,16 +1,16 @@
 import { Module } from '@nestjs/common';
-import { UsersController } from './users.controller';
+import { ProfileController } from './profile.controller';
 import { ClientsModule, Transport } from '@nestjs/microservices';
 
 @Module({
   imports: [
     ClientsModule.register([
       {
-        name: 'USERS_SERVICE',
+        name: 'PROFILE_SERVICE',
         transport: Transport.RMQ,
         options: {
           urls: [process.env.RMQ_URL],
-          queue: process.env.RABBITMQ_USERS_QUEUE,
+          queue: process.env.RABBITMQ_PROFILE_QUEUE,
           queueOptions: {
             durable: false,
           },
@@ -18,7 +18,7 @@ import { ClientsModule, Transport } from '@nestjs/microservices';
       },
     ]),
   ],
-  controllers: [UsersController],
+  controllers: [ProfileController],
   providers: [],
 })
-export class UsersModule {}
+export class ProfileModule {}

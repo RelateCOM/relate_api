@@ -1,8 +1,8 @@
 import { Module } from '@nestjs/common';
 import { AuthModule } from './auth/auth.module';
 import { ConfigModule } from '@nestjs/config';
-import { UsersModule } from './users/users.module';
 import { JwtModule } from '@nestjs/jwt';
+import { ProfileModule } from './profile/profile.module';
 
 @Module({
   imports: [
@@ -15,7 +15,7 @@ import { JwtModule } from '@nestjs/jwt';
       isGlobal: true,
     }),
     AuthModule,
-    UsersModule,
+    ProfileModule,
   ],
   controllers: [],
   providers: [],

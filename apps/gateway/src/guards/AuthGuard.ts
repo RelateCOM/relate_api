@@ -16,10 +16,8 @@ export class AuthGuard implements CanActivate {
     context: ExecutionContext,
   ): boolean | Promise<boolean> | Observable<boolean> {
     const request = context.switchToHttp().getRequest();
-    console.log(request.headers);
     try {
       const authHeader = request.headers.authorization;
-      Logger.log(authHeader);
       const bearer = authHeader.split(' ')[0];
       const token = authHeader.split(' ')[1];
 
@@ -28,8 +26,14 @@ export class AuthGuard implements CanActivate {
           message: 'User is not authorized',
         });
       }
-      const payload = this.jwtService.verify(token);
-      request.id = Number(payload.id);
+
+      try {
+        const payload = this.jwtService.verify(token);
+        request.userId = payload.userId;
+      } catch (error) {
+        Logger.error(error.message);
+        throw new UnauthorizedException(error.message);
+      }
     } catch (error) {
       Logger.error(error.message);
       throw new UnauthorizedException(error.message);

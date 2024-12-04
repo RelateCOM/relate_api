@@ -1,17 +1,15 @@
 import { Controller } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import { MessengerService } from './messenger.service';
-import { CreateMessengerDto } from './dto/create-messenger.dto';
-import { UpdateMessengerDto } from './dto/update-messenger.dto';
 
 @Controller()
 export class MessengerController {
   constructor(private readonly messengerService: MessengerService) {}
 
-  @MessagePattern('createMessenger')
-  create(@Payload() createMessengerDto: CreateMessengerDto) {
-    return this.messengerService.create(createMessengerDto);
-  }
+  // @MessagePattern('createMessenger')
+  // create(@Payload() createMessengerDto: CreateMessengerDto) {
+  //   return this.messengerService.create(createMessengerDto);
+  // }
 
   @MessagePattern('findAllMessenger')
   findAll() {
@@ -23,10 +21,10 @@ export class MessengerController {
     return this.messengerService.findOne(id);
   }
 
-  @MessagePattern('updateMessenger')
-  update(@Payload() updateMessengerDto: UpdateMessengerDto) {
-    return this.messengerService.update(updateMessengerDto.id, updateMessengerDto);
-  }
+  // @MessagePattern('updateMessenger')
+  // update(@Payload() updateMessengerDto: UpdateMessengerDto) {
+  //   return this.messengerService.update(updateMessengerDto.id, updateMessengerDto);
+  // }
 
   @MessagePattern('removeMessenger')
   remove(@Payload() id: number) {

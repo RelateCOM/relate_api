@@ -20,11 +20,11 @@ export class AuthController {
 
   @Post('/refresh')
   async refreshToken(@Body() refreshDto: RefreshDto) {
-    return this.authClient.send('auth.refreshToken', refreshDto.token);
+    return this.authClient.send('auth.refreshToken', refreshDto.refreshToken);
   }
 
   @Post('/logout')
   logout(@Body() refreshDto: RefreshDto) {
-    return this.authClient.send('auth.logout', refreshDto.token);
+    return this.authClient.send('auth.logout', refreshDto.refreshToken);
   }
 }

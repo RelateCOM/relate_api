@@ -1,8 +1,8 @@
 import { Module } from '@nestjs/common';
-import { UsersModule } from './users/users.module';
-import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { UsersEntity } from './users/entities/user.entity';
+import { ProfileModule } from './profile/profile.module';
+import { ProfileEntity } from './profile/entities/profile.entity';
+import { ConfigModule } from '@nestjs/config';
 
 @Module({
   imports: [
@@ -17,12 +17,12 @@ import { UsersEntity } from './users/entities/user.entity';
       username: process.env.POSTGRES_USER,
       password: process.env.POSTGRES_PASSWORD,
       database: process.env.POSTGRES_DB,
-      entities: [UsersEntity],
+      entities: [ProfileEntity],
       autoLoadEntities: true,
       //NB! attr synchronize is not safe for prod, migrations is better.
       synchronize: true,
     }),
-    UsersModule,
+    ProfileModule,
   ],
   controllers: [],
   providers: [],
